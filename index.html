@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>نبهني — نظام تنبيه السيارات</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <style>
+    :root {
+      --bg: #f3f5f8;
+      --card: #ffffff;
+      --primary: #dc2626;
+      --primary-dark: #b91c1c;
+      --success: #059669;
+      --text: #0f172a;
+      --muted: #64748b;
+      --border: #e2e8f0;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Cairo', sans-serif;
+    }
+    body {
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+    }
+    .app-card {
+      width: 100%;
+      max-width: 430px;
+      background: var(--card);
+      border-radius: 22px;
+      padding: 26px 20px;
+      box-shadow: 0 12px 32px rgba(15, 23, 42, 0.08);
+      border: 1px solid var(--border);
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 18px;
+    }
+    .brand {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--primary);
+      line-height: 1.2;
+    }
+    .subtitle {
+      font-size: 13.5px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+    .car-pill {
+      display: inline-block;
+      margin: 8px auto 16px;
+      padding: 6px 14px;
+      border-radius: 999px;
+      background: #f1f5f9;
+      border: 1px solid var(--border);
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--text);
+    }
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 6px;
+      text-align: right;
+    }
+    input[type="text"], textarea {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1.5px solid var(--border);
+      font-size: 15px;
+      margin-bottom: 12px;
+      text-align: center;
+      background: #fff;
+      color: var(--text);
+    }
+    input[type="text"]:focus, textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+    .btn {
+      width: 100%;
+      padding: 12px 14px;
+      border: none;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 10px;
+      transition: background 0.15s ease, opacity 0.15s ease;
+    }
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    .btn-red {
+      background: var(--primary);
+      color: #fff;
+    }
+    .btn-red:hover:not(:disabled) {
+      background: var(--primary-dark);
+    }
+    .btn-green {
+      background: var(--success);
+      color: #fff;
+    }
+    .btn-light {
+      background: #f8fafc;
+      color: var(--text);
+      border: 1.5px solid var(--border);
+    }
+    .btn-light:hover:not(:disabled) {
+      background: #f1f5f9;
+    }
+    .qr-card {
+      margin-top: 14px;
+      padding: 16px;
+      border-radius: 16px;
+      border: 1.5px dashed #cbd5e1;
+      background: #fafafa;
+      text-align: center;
+    }
+    #qrcode {
+      display: flex;
+      justify-content: center;
+      margin: 10px auto;
+    }
+    .qr-car-title {
+      font-size: 15px;
+      font-weight: 800;
+      margin-top: 6px;
+    }
+    .qr-link-preview {
+      font-size: 11px;
+      color: var(--muted);
+      word-break: break-all;
+      margin-top: 6px;
+    }
+    .topic-box {
+      margin-top: 10px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: #fffbeb;
+      border: 1px solid #fde68a;
+      color: #92400e;
+      font-size: 12px;
+      text-align: center;
+      word-break: break-all;
+    }
+    .notice {
+      margin-top: 12px;
+      padding: 11px 12px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 600;
+      line-height: 1.6;
+      display: none;
+      text-align: center;
+    }
+    .notice.show {
+      display: block;
+    }
+    .notice.ok {
+      background: #dcfce7;
+      color: #166534;
+    }
+    .notice.err {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+    .notice.info {
+      background: #e0f2fe;
+      color: #075985;
+    }
+    .alert-inbox {
+      margin-top: 14px;
+      padding: 14px;
+      border-radius: 14px;
+      background: #fef2f2;
+      border: 1.5px solid #fca5a5;
+      color: #7f1d1d;
+      display: none;
+      text-align: right;
+    }
+    .alert-inbox.show {
+      display: block;
+    }
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 16px 0;
+    }
+    .hidden {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-card">
+    <div class="header">
+      <div class="brand">🚗 نبهني</div>
+    </div>
+
+    <!-- ===================================== -->
+    <!-- صفحة 1: صاحب السيارة (توليد باركود + استقبال) -->
+    <!-- ===================================== -->
+    <section id="owner-page" class="hidden">
+      <p class="subtitle" style="text-align:center; margin-bottom:16px;">
+        صفحة صاحب السيارة — أدخل رقم السيارة لتوليد الباركود وتفعيل الاستقبال
+      </p>
+
+      <label for="car-number-input">رقم / رمز السيارة</label>
+      <input
+        type="text"
+        id="car-number-input"
+        placeholder="مثال: CAR-001 أو BGD-452"
+        value="CAR-001"
+        oninput="syncQrLive()"
+      />
+
+      <button type="button" class="btn btn-red" id="activate-btn" onclick="activateOwner()">
+        🔔 تفعيل الإشعارات وتأكيد الباركود
+      </button>
+
+      <div id="owner-notice" class="notice"></div>
+      <div id="live-alert-box" class="alert-inbox"></div>
+
+      <div id="qr-area" class="qr-card">
+        <div style="font-size:13px; font-weight:700; color:var(--muted);">الباركود الخاص بهذه السيارة</div>
+        <div id="qrcode"></div>
+        <div id="qr-car-label" class="qr-car-title">CAR-001</div>
+        <div id="qr-url-text" class="qr-link-preview"></div>
+        <div id="qr-topic-text" class="topic-box"></div>
+      </div>
+
+      <button type="button" class="btn btn-green" style="margin-top:12px;" onclick="downloadQrImage()">
+        📥 حفظ الباركود كصورة (PNG)
+      </button>
+
+      <button type="button" class="btn btn-light" onclick="openVisitorTestPage()">
+        🚨 فتح صفحة التنبيهات (اختبار الزائر)
+      </button>
+    </section>
+
+    <!-- ===================================== -->
+    <!-- صفحة 2: صفحة التنبيهات (الشخص المار بالشارع) -->
+    <!-- ===================================== -->
+    <section id="visitor-page" class="hidden">
+      <p class="subtitle" style="text-align:center;">
+        صفحة التنبيهات — اختر سبب التنبيه لإرساله فوراً لصاحب السيارة
+      </p>
+
+      <div style="text-align:center;">
+        <div class="car-pill">السيارة: <span id="visitor-car-code">CAR-001</span></div>
+      </div>
+
+      <button type="button" class="btn btn-light send-btn" onclick="triggerAlert('🚫 سيارتك تغلق الطريق أو تعيق الحركة')">
+        🚫 سيارتك تغلق الطريق
+      </button>
+      <button type="button" class="btn btn-light send-btn" onclick="triggerAlert('💡 أضواء السيارة لا تزال مشتعلة')">
+        💡 الأضواء مشتعلة
+      </button>
+      <button type="button" class="btn btn-light send-btn" onclick="triggerAlert('🪟 نافذة أو باب السيارة مفتوح')">
+        🪟 نافذة أو باب مفتوح
+      </button>
+      <button type="button" class="btn btn-light send-btn" onclick="triggerAlert('⚠️ يوجد تنبيه مهم بخصوص سيارتك، يرجى الحضور')">
+        ⚠️ تنبيه مهم / يرجى الحضور
+      </button>
+
+      <div class="divider"></div>
+
+      <label for="custom-alert-text">رسالة مخصصة (اختياري)</label>
+      <textarea id="custom-alert-text" rows="2" placeholder="اكتب ملاحظة قصيرة لصاحب السيارة..."></textarea>
+      <button type="button" class="btn btn-red send-btn" onclick="triggerCustomAlert()">
+        📤 إرسال التنبيه الآن
+      </button>
+
+      <div id="visitor-notice" class="notice"></div>
+    </section>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const paramMode = (params.get('mode') || '').trim().toLowerCase();
+    const paramCar = (params.get('car') || '').trim();
+
+    const ownerPage = document.getElementById('owner-page');
+    const visitorPage = document.getElementById('visitor-page');
+
+    let listenerSource = null;
+    let activeTopic = '';
+
+    function sanitizeCarCode(raw) {
+      const cleaned = (raw || 'CAR-001').trim().replace(/\s+/g, '-');
+      return cleaned || 'CAR-001';
+    }
+
+    function buildTopic(carCode) {
+      const safe = sanitizeCarCode(carCode).replace(/[^a-zA-Z0-9_-]/g, '_');
+      return 'nabihni_car_' + safe;
+    }
+
+    function buildAlertUrl(carCode) {
+      const cleanCar = sanitizeCarCode(carCode);
+      const base = `${window.location.origin}${window.location.pathname}`;
+      return `${base}?car=${encodeURIComponent(cleanCar)}&mode=alert`;
+    }
+
+    function renderQrForCar(carCode) {
+      const cleanCar = sanitizeCarCode(carCode);
+      const alertUrl = buildAlertUrl(cleanCar);
+      const topic = buildTopic(cleanCar);
+
+      const qrContainer = document.getElementById('qrcode');
+      qrContainer.innerHTML = '';
+
+      new QRCode(qrContainer, {
+        text: alertUrl,
+        width: 184,
+        height: 184,
+        colorDark: '#0f172a',
+        colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.H
+      });
+
+      document.getElementById('qr-car-label').textContent = cleanCar;
+      document.getElementById('qr-url-text').textContent = alertUrl;
+      document.getElementById('qr-topic-text').textContent = `قناة الإشعارات (ntfy): ${topic}`;
+    }
+
+    function playAlertSound() {
+      try {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        const ctx = new AudioContextClass();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(920, ctx.currentTime);
+        gain.gain.setValueAtTime(0.25, ctx.currentTime);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.4);
+      } catch (_) {}
+    }
+
+    function showNotice(elId, type, text) {
+      const el = document.getElementById(elId);
+      el.className = `notice show ${type}`;
+      el.textContent = text;
+    }
+
+    function displayIncomingAlert(carCode, message) {
+      playAlertSound();
+
+      const inbox = document.getElementById('live-alert-box');
+      const timeStr = new Date().toLocaleTimeString('ar-IQ', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      inbox.className = 'alert-inbox show';
+      inbox.innerHTML = `
+        <div style="font-weight:800; font-size:14px;">🚨 وصل تنبيه جديد — ${carCode} (${timeStr})</div>
+        <div style="margin-top:6px; font-size:14px; font-weight:700;">${message}</div>
+      `;
+
+      if ('Notification' in window && Notification.permission === 'granted') {
+        try {
+          new Notification(`تنبيه للسيارة ${carCode}`, {
+            body: message
+          });
+        } catch (_) {}
+      }
+    }
+
+    function startChannelListener(carCode) {
+      const cleanCar = sanitizeCarCode(carCode);
+      const topic = buildTopic(cleanCar);
+
+      if (listenerSource && activeTopic === topic) {
+        return;
+      }
+      if (listenerSource) {
+        listenerSource.close();
+      }
+      activeTopic = topic;
+
+      listenerSource = new EventSource(`https://ntfy.sh/${topic}/sse`);
+      listenerSource.onmessage = function (event) {
+        try {
+          const data = JSON.parse(event.data);
+          if (data.event === 'message' && data.message) {
+            displayIncomingAlert(cleanCar, data.message);
+          }
+        } catch (_) {}
+      };
+    }
+
+    function syncQrLive() {
+      const val = document.getElementById('car-number-input').value;
+      renderQrForCar(val);
+    }
+
+    function activateOwner() {
+      const cleanCar = sanitizeCarCode(document.getElementById('car-number-input').value);
+      document.getElementById('car-number-input').value = cleanCar;
+      localStorage.setItem('nabihni_saved_car', cleanCar);
+
+      renderQrForCar(cleanCar);
+      startChannelListener(cleanCar);
+
+      if ('Notification' in window) {
+        if (Notification.permission === 'granted') {
+          showNotice(
+            'owner-notice',
+            'ok',
+            `✅ تم تفعيل الاستقبال للسيارة (${cleanCar}). أبقِ الصفحة مفتوحة أو اشترك بالقناة في تطبيق ntfy لضمان الإشعار حتى والصفحة مسدودة.`
+          );
+        } else if (Notification.permission !== 'denied') {
+          Notification.requestPermission().then((perm) => {
+            if (perm === 'granted') {
+              showNotice(
+                'owner-notice',
+                'ok',
+                `✅ تم تفعيل إشعارات المتصفح للسيارة (${cleanCar}) بنجاح.`
+              );
+            } else {
+              showNotice(
+                'owner-notice',
+                'info',
+                `ℹ️ سيظهر التنبيه بصوت وبطاقة داخل هذه الصفحة، ولضمان الإشعار والصفحة مسدودة اشترك بالقناة في تطبيق ntfy.`
+              );
+            }
+          });
+        } else {
+          showNotice(
+            'owner-notice',
+            'info',
+            `ℹ️ إشعارات المتصفح محظورة حالياً؛ سيظهر التنبيه داخل الصفحة، ويمكنك استقباله بالخلفية عبر تطبيق ntfy.`
+          );
+        }
+      } else {
+        showNotice(
+          'owner-notice',
+          'info',
+          `ℹ️ استخدم تطبيق ntfy بنفس اسم القناة لاستلام التنبيهات والصفحة مغلقة.`
+        );
+      }
+    }
+
+    function downloadQrImage() {
+      const cleanCar = sanitizeCarCode(document.getElementById('car-number-input').value);
+      renderQrForCar(cleanCar);
+
+      setTimeout(() => {
+        const img = document.querySelector('#qrcode img');
+        const canvas = document.querySelector('#qrcode canvas');
+        const link = document.createElement('a');
+
+        if (img && img.src) {
+          link.href = img.src;
+        } else if (canvas) {
+          link.href = canvas.toDataURL('image/png');
+        } else {
+          showNotice('owner-notice', 'err', '❌ تعذر تجهيز صورة الباركود، أعد المحاولة.');
+          return;
+        }
+
+        link.download = `nabihni-qr-${cleanCar}.png`;
+        link.click();
+        showNotice('owner-notice', 'ok', `✅ تم تحميل صورة الباركود الخاصة بالسيارة (${cleanCar}).`);
+      }, 120);
+    }
+
+    function openVisitorTestPage() {
+      const cleanCar = sanitizeCarCode(document.getElementById('car-number-input').value);
+      localStorage.setItem('nabihni_saved_car', cleanCar);
+      startChannelListener(cleanCar);
+      window.open(buildAlertUrl(cleanCar), '_blank');
+    }
+
+    function setSendButtonsDisabled(flag) {
+      document.querySelectorAll('.send-btn').forEach((btn) => {
+        btn.disabled = flag;
+      });
+    }
+
+    function triggerAlert(messageText) {
+      const targetCar = sanitizeCarCode(paramCar || 'CAR-001');
+      const topic = buildTopic(targetCar);
+
+      setSendButtonsDisabled(true);
+      showNotice('visitor-notice', 'info', '⏳ جاري إرسال التنبيه...');
+
+      fetch('https://ntfy.sh', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          topic: topic,
+          title: `Alert - ${targetCar}`,
+          message: messageText
+        })
+      })
+        .then((res) => {
+          if (!res.ok) throw new Error('Failed');
+          showNotice('visitor-notice', 'ok', '✅ تم إرسال التنبيه بنجاح إلى صاحب السيارة.');
+        })
+        .catch(() => {
+          showNotice('visitor-notice', 'err', '❌ فشل الإرسال، تأكد من الاتصال بالإنترنت وأعد المحاولة.');
+        })
+        .finally(() => {
+          setSendButtonsDisabled(false);
+        });
+    }
+
+    function triggerCustomAlert() {
+      const input = document.getElementById('custom-alert-text');
+      const msg = input.value.trim();
+      if (!msg) {
+        showNotice('visitor-notice', 'err', '⚠️ يرجى كتابة رسالة قبل الضغط على إرسال.');
+        return;
+      }
+      triggerAlert(msg);
+      input.value = '';
+    }
+
+    // تشغيل الصفحة المناسبة حسب الرابط
+    if (paramMode === 'alert') {
+      visitorPage.classList.remove('hidden');
+      const targetCar = sanitizeCarCode(paramCar || 'CAR-001');
+      document.getElementById('visitor-car-code').textContent = targetCar;
+    } else {
+      ownerPage.classList.remove('hidden');
+      const savedCar = localStorage.getItem('nabihni_saved_car') || 'CAR-001';
+      document.getElementById('car-number-input').value = savedCar;
+      renderQrForCar(savedCar);
+      startChannelListener(savedCar);
+    }
+  </script>
+</body>
+</html>
